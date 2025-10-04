@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agro Innovators AI - Local Backend Edition</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Load Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fbf8; /* Very light green/white background */
+        }
+        /* Custom Green Accent Color */
+        .green-primary { background-color: #16a34a; } /* Tailwind green-600 */
+        .green-text { color: #16a34a; }
+        .green-border { border-color: #16a34a; }
+        .hover-green:hover { background-color: #15803d; } /* Tailwind green-700 for hover */
+
+        /* Custom styling for progress bar segments */
+        .progress-segment {
+            transition: all 0.5s ease-in-out;
+            cursor: pointer;
+        }
+        .progress-segment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .scrollable-modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .active-quiz {
+            border: 2px solid #16a34a;
+            box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3), 0 2px 4px -1px rgba(22, 163, 74, 0.06);
+        }
+        /* Iframe wrapper for responsive videos */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        /* New custom background for the login page */
+        #login-main {
+            background: linear-gradient(to top, #e5e7eb, #f7fbf8); /* Subtle gray to white gradient */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ---------------------------------------------------- -->
+    <!-- 1. LOGIN VIEW (Initial State) -->
+    <!-- ---------------------------------------------------- -->
+    <div id="login-view" class="flex-grow flex flex-col">
+        <!-- Login Header -->
+        <header class="bg-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-3xl font-extrabold green-text tracking-tight">
+                        Agro Innovators AI (Local Data)
+                    </span>
+                    <i data-lucide="leaf" class="w-6 h-6 green-text"></i>
+                </div>
+                <nav>
+                    <a href="#" class="py-2 px-4 rounded-lg green-primary text-white font-semibold shadow-md">
+                        Login
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Login Main Content -->
+        <main id="login-main" class="flex-grow flex items-center justify-center p-4">
+            <div class="w-full max-w-6xl space-y-8">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Farmer Login Card -->
+                    <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-green-300/50 hover:shadow-xl">
+                        <div class="green-primary p-6 text-white text-center">
+                            <i data-lucide="tractor" class="w-8 h-8 mx-auto mb-2"></i>
+                            <h2 class="text-2xl font-bold">Farmer Login (Test Users)</h2>
+                            <p class="text-sm opacity-90 mt-1">Use ID: **farmer123** or **farmer456** | Pass: **pass**</p>
+                        </div>
+                        
+                        <form id="farmer-login-form" class="p-8 space-y-6">
+                            <div>
+                                <label for="farmer-id" class="block text-sm font-medium text-gray-700 mb-1">Farmer ID</label>
+                                <div class="relative">
+                                    <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <input type="text" id="farmer-id" name="farmer-id" placeholder="e.g., farmer123" 
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150" required value="farmer123">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="farmer-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <div class="relative">
+                                    <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <input type="password" id="farmer-password" name="farmer-password" placeholder="Enter your password" 
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150" required value="pass">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="farmer-login-btn"
+                                class="w-full py-3 px-4 rounded-lg text-lg font-semibold text-white green-primary hover-green transition duration-200 shadow-lg shadow-green-300/50">
+                                Login as Farmer
+                            </button>
+                            <p id="login-message" class="text-sm text-center text-red-500 hidden">Invalid credentials. Please try again.</p>
+                        </form>
+                    </div>
+
+                    <!-- Panchayat Login Card (Non-functional for switching) -->
+                    <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-gray-400/50 hover:shadow-xl">
+                        <div class="bg-gray-700 p-6 text-white text-center">
+                            <i data-lucide="building-2" class="w-8 h-8 mx-auto mb-2"></i>
+                            <h2 class="text-2xl font-bold">Panchayat Login</h2>
+                            <p class="text-sm opacity-90 mt-1">Access administrative tools and area statistics (Static).</p>
+                        </div>
+                        
+                        <form id="panchayat-login-form" class="p-8 space-y-6">
+                            <div>
+                                <label for="panchayat-id" class="block text-sm font-medium text-gray-700 mb-1">Official ID / Email</label>
+                                <div class="relative">
+                                    <i data-lucide="briefcase" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <input type="text" id="panchayat-id" name="panchayat-id" placeholder="Enter official ID or email" 
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg" required value="official">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="panchayat-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <div class="relative">
+                                    <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <input type="password" id="panchayat-password" name="panchayat-password" placeholder="Enter your password" 
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg" required value="pass">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="panchayat-login-btn"
+                                class="w-full py-3 px-4 rounded-lg text-lg font-semibold text-white bg-gray-700 hover:bg-gray-800 transition duration-200 shadow-lg shadow-gray-500/50">
+                                Login as Panchayat (View Data)
+                            </button>
+                            <p id="panchayat-login-message" class="text-sm text-center text-red-500 hidden">Invalid credentials. Please try again.</p>
+                        </form>
+                    </div>
+
+                </div>
+                <!-- Live Demo Button for Judges -->
+                <div class="w-full max-w-6xl mt-8 p-6 bg-blue-100 rounded-xl shadow-lg border border-blue-200">
+                    <h3 class="text-xl font-bold text-blue-800 flex items-center mb-2">
+                        <i data-lucide="play-circle" class="w-6 h-6 mr-2 text-blue-600"></i> Prototype Walkthrough
+                    </h3>
+                    <p class="text-blue-700 text-sm">
+                        Click below for a quick, automated demo showing key features like gamification, quizzes, and the offline mode.
+                    </p>
+                    <button id="demo-walkthrough-btn" class="mt-4 w-full py-3 px-4 rounded-lg text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition duration-200 shadow-md">
+                        Start Demo
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Login Footer -->
+        <footer class="bg-white p-4 text-center text-sm text-gray-500 shadow-inner mt-4">
+            &copy; 2025 Agro Innovators AI. All rights reserved. (Local Persistence)
+        </footer>
+    </div>
+
+
+    <!-- ---------------------------------------------------- -->
+    <!-- 2. FARMER DASHBOARD VIEW (Initially Hidden) -->
+    <!-- ---------------------------------------------------- -->
+    <div id="dashboard-view" class="min-h-screen flex flex-col hidden">
+        
+        <!-- Dashboard Header / Navbar -->
+        <header class="bg-white shadow-md sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl font-extrabold green-text tracking-tight">
+                        Agro Innovators AI (Farmer)
+                    </span>
+                    <i data-lucide="leaf" class="w-5 h-5 green-text"></i>
+                    <!-- Offline Status Indicator -->
+                    <span id="offline-indicator" class="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-semibold hidden">
+                        <i data-lucide="cloud-off" class="w-4 h-4 mr-1 inline"></i> Offline
+                    </span>
+                </div>
+                <nav class="flex items-center space-x-6">
+                    <button id="voice-ai-btn" class="py-2 px-4 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition duration-150 shadow-md flex items-center">
+                        <i data-lucide="mic" class="w-4 h-4 mr-2"></i> Voice AI
+                    </button>
+                    <a href="#" class="text-gray-600 hover:green-text font-medium transition duration-150 flex items-center"><i data-lucide="home" class="w-4 h-4 mr-1"></i> Dashboard</a>
+                    <a href="#" class="text-gray-600 hover:green-text font-medium transition duration-150 flex items-center"><i data-lucide="help-circle" class="w-4 h-4 mr-1"></i> Help</a>
+                    <button id="logout-btn" class="py-2 px-4 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition duration-150 shadow-md flex items-center">
+                        <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Dashboard Main Content Area -->
+        <main class="flex-grow p-4 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-8">
+                
+                <!-- NEW: AI Response Message Box (Initially hidden) -->
+                <div id="ai-response-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-900 p-4 rounded-lg shadow-md transition-all duration-300 hidden">
+                    <div class="flex items-start space-x-3">
+                        <i data-lucide="bot" class="w-6 h-6 text-blue-500 flex-shrink-0"></i>
+                        <div class="flex-grow">
+                            <strong class="block text-sm font-semibold">Agro AI Assistant:</strong>
+                            <p class="text-sm mt-1" id="ai-response-text"></p>
+                        </div>
+                        <button id="close-ai-response" class="text-blue-500 hover:text-blue-700">
+                             <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                
+                <!-- Welcome Banner and Scorecard -->
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="md:col-span-2 lg:col-span-3 bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+                        <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center">
+                            Welcome back, <span id="farmer-name" class="green-text ml-1">Loading...</span> <i data-lucide="hand-metal" class="w-5 h-5 ml-2 text-yellow-500"></i>
+                        </h1>
+                        <p class="text-gray-600 mt-2">
+                            Ready to level up your farm and achieve **Sustainable Farming Mastery**?
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                            <span class="bg-green-100 green-text font-medium py-1 px-3 rounded-full flex items-center">
+                                <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> Village: Mandi
+                            </span>
+                            <span class="bg-green-100 green-text font-medium py-1 px-3 rounded-full flex items-center">
+                                <i data-lucide="calendar" class="w-4 h-4 mr-1"></i> Current Practice: <span id="current-practice">...</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Scorecard: Dark theme for visibility -->
+                    <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-white text-center flex flex-col justify-center">
+                        <div class="text-4xl font-extrabold green-text" id="ecology-points">0</div>
+                        <div class="text-sm opacity-90">Ecology Points</div>
+                        <div class="mt-3 text-2xl font-bold border-t border-white/30 pt-3">
+                            #<span id="community-rank">--</span>
+                        </div>
+                        <div class="text-xs opacity-80">Community Rank (Local Mock)</div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- COLUMN 1 & 2 (Progress & Stats) -->
+                    <div class="lg:col-span-2 space-y-8">
+
+                        <!-- Sustainable Practice Journey -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Sustainable Practice Journey</h3>
+                            <div class="relative w-full h-8 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="journey-progress-bar" class="absolute h-full green-primary rounded-full transition-all duration-1000" style="width: 0%;"></div>
+                                <span class="absolute w-full h-full flex items-center justify-center text-white font-bold text-sm" id="journey-progress-text">0% Journey Progress</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-5 gap-2 mt-4 text-center" id="journey-segments">
+                                <!-- Segments dynamically loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Ecology Mastery Badges and Sustainability Impact Metrics -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Ecology Mastery Badges (Dynamically loaded) -->
+                            <div class="bg-white rounded-xl shadow-lg p-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Ecology Mastery Badges</h3>
+                                <div class="space-y-4" id="badge-container">
+                                    <p class="text-gray-500">Loading badges...</p>
+                                </div>
+                            </div>
+
+                            <!-- Sustainability Impact Metrics (Dynamically loaded) -->
+                            <div class="bg-white rounded-xl shadow-lg p-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Sustainability Impact Metrics</h3>
+                                <div class="space-y-4" id="impact-metrics">
+                                    <p class="text-gray-500">Loading metrics...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Educational Resources (New Video Section) -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i data-lucide="monitor-play" class="w-5 h-5 mr-2 green-text"></i> Educational Resources (Kerala)
+                            </h3>
+                            <div id="video-resources" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- Videos will be rendered here -->
+                            </div>
+                        </div>
+                        <!-- End Educational Resources -->
+                    </div>
+                    
+                    <!-- COLUMN 3 (Goals & Quiz Center) -->
+                    <div class="space-y-8">
+                        
+                        <!-- Today's Goals (Practice Micro-Actions) -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                                Today's Goals (Practice Micro-Actions)
+                                <span class="text-xs green-text font-medium">Monday</span>
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center text-gray-700">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 green-text border-gray-300 rounded-full focus:ring-green-500">
+                                    <span class="ml-3 text-sm line-through">Apply Neem-based bio-pesticide</span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 green-text border-gray-300 rounded-full focus:ring-green-500">
+                                    <span class="ml-3 text-sm">Measure soil moisture in Sector B</span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 green-text border-gray-300 rounded-full focus:ring-green-500">
+                                    <span class="ml-3 text-sm">Plant border crops for beneficial insects</span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 green-text border-gray-300 rounded-full focus:ring-green-500">
+                                    <span class="ml-3 text-sm">Log last week's water consumption</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Community Leaderboard (Dynamically loaded) -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i data-lucide="award" class="w-5 h-5 mr-2 green-text"></i> Community Leaderboard (Local Mock)
+                            </h3>
+                            <div class="space-y-3" id="leaderboard-container">
+                                <p class="text-gray-500">Loading leaderboard...</p>
+                            </div>
+                        </div>
+
+                        <!-- Learning Center (Quiz) -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i data-lucide="book-open" class="w-5 h-5 mr-2 green-text"></i> Learning Center
+                            </h3>
+                            <div class="border-b pb-4 mb-4 flex justify-around text-center">
+                                <div>
+                                    <div class="text-3xl font-bold green-text" id="quiz-completion">0</div>
+                                    <div class="text-xs text-gray-500">Quizzes Completed</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-blue-500" id="quiz-avg-score">0%</div>
+                                    <div class="text-xs text-gray-500">Avg. Score</div>
+                                </div>
+                            </div>
+
+                            <div id="quiz-display">
+                                <h4 class="font-medium text-gray-800 mb-3">Available Quizzes:</h4>
+                                <div id="available-quiz-card" class="p-4 rounded-lg bg-green-50 active-quiz transition duration-200">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold green-text text-lg" id="current-quiz-title">Loading Quiz...</span>
+                                            <span class="text-sm text-gray-600" id="current-quiz-desc">Check your knowledge on sustainable basics.</span>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-500 border border-gray-300 px-2 py-1 rounded-full" id="current-quiz-level">Level 1</span>
+                                    </div>
+                                </div>
+                                <button id="start-quiz-btn" class="mt-4 w-full py-3 rounded-lg green-primary text-white font-semibold hover-green transition duration-200 shadow-md">
+                                    Start Quiz
+                                </button>
+                                <div id="quiz-result" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden text-sm"></div>
+                            </div>
+
+                            <!-- Quiz Modal -->
+                            <div id="quiz-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+                                <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 scrollable-modal-content">
+                                    <h3 class="text-xl font-bold green-text mb-4 border-b pb-2">Sustainable Farming Quiz: <span id="modal-quiz-title"></span></h3>
+                                    <div id="question-container" class="space-y-4">
+                                        <!-- Questions will be injected here -->
+                                    </div>
+                                    <button id="submit-quiz-btn" class="mt-6 w-full py-3 rounded-lg green-primary text-white font-semibold hover-green transition duration-200" disabled>
+                                        Submit Answers
+                                    </button>
+                                    <button id="close-modal-btn" class="mt-3 w-full py-2 rounded-lg text-gray-600 border border-gray-300 hover:bg-gray-100 transition duration-200">
+                                        Cancel / Back to Dashboard
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Voice AI Modal Simulation -->
+        <div id="voice-ai-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
+                <i data-lucide="mic" class="w-16 h-16 text-blue-500 mx-auto animate-pulse"></i>
+                <p class="text-gray-700 text-lg mt-4 font-bold" id="voice-ai-listening-text">Voice AI is listening...</p>
+                <p class="text-sm text-gray-500 mt-2">Speak your question about sustainable farming.</p>
+                <button id="close-voice-modal-btn" class="mt-6 py-2 px-4 rounded-lg text-sm bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Footer -->
+        <footer class="bg-white p-4 text-center text-sm text-gray-500 shadow-inner mt-4">
+            &copy; 2025 Agro Innovators AI. All rights reserved. (Local Persistence)
+        </footer>
+    </div>
+    
+    <!-- ---------------------------------------------------- -->
+    <!-- 3. PANCHAYAT DASHBOARD VIEW (NEW - Initially Hidden) -->
+    <!-- ---------------------------------------------------- -->
+    <div id="panchayat-view" class="min-h-screen flex flex-col hidden">
+        
+        <!-- Panchayat Header / Navbar -->
+        <header class="bg-gray-800 shadow-md sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl font-extrabold text-white tracking-tight">
+                        Panchayat Monitoring Dashboard
+                    </span>
+                    <i data-lucide="building-2" class="w-5 h-5 text-yellow-400"></i>
+                </div>
+                <nav>
+                    <button id="panchayat-logout-btn" class="py-2 px-4 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition duration-150 shadow-md flex items-center">
+                        <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Panchayat Main Content Area -->
+        <main class="flex-grow p-4 lg:p-8 bg-gray-50">
+            <div class="max-w-7xl mx-auto space-y-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Area Performance Overview (Local Data)</h1>
+                
+                <!-- 1. Key Metrics Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Total Farmers -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-b-4 border-blue-500">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-500">Total Registered Farmers</span>
+                            <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 mt-2" id="panchayat-total-farmers">0</div>
+                        <p class="text-xs text-gray-400 mt-1">Based on local test data</p>
+                    </div>
+
+                    <!-- Avg Ecology Score -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-b-4 green-border">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-500">Avg. Ecology Score (Community)</span>
+                            <i data-lucide="leaf" class="w-5 h-5 green-text"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 mt-2" id="panchayat-avg-ecology">0</div>
+                        <p class="text-xs green-text mt-1">+1.2% from last week (Mock)</p>
+                    </div>
+
+                    <!-- Avg Quiz Score -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-b-4 border-purple-500">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-500">Average Learning Score</span>
+                            <i data-lucide="book-open" class="w-5 h-5 text-purple-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 mt-2" id="panchayat-avg-quiz-score">0%</div>
+                        <p class="text-xs text-gray-400 mt-1">Farmer learning retention</p>
+                    </div>
+
+                    <!-- Avg Journey Progress -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-b-4 border-yellow-500">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-500">Avg. Journey Completion</span>
+                            <i data-lucide="trending-up" class="w-5 h-5 text-yellow-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 mt-2" id="panchayat-avg-journey">0%</div>
+                        <p class="text-xs text-gray-400 mt-1">Community average progress</p>
+                    </div>
+                </div>
+                
+                <!-- Data Visualization Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Quiz Score vs. Practice Adoption</h2>
+                        <div class="relative h-64">
+                            <canvas id="quizAdoptionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Ecology Points by Month</h2>
+                        <div class="relative h-64">
+                            <canvas id="ecologyPointsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 2. Farmer Detailed Performance Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i data-lucide="list-checks" class="w-5 h-5 mr-2 green-text"></i> Individual Farmer Progress
+                    </h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ecology Pts</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quizzes Comp.</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Score</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Badges</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="farmer-performance-body">
+                                <!-- Farmer rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4">Note: This data is sourced from your browser's local storage and is not shared.</p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Panchayat Footer -->
+        <footer class="bg-gray-700 p-4 text-center text-sm text-gray-400 shadow-inner mt-4">
+            &copy; 2025 Agro Innovators AI. Administrative View.
+        </footer>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- JavaScript for Local Storage, View Switching, and Dynamic Logic -->
+    <!-- ---------------------------------------------------- -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        
+        // Global state for the active user
+        let activeFarmerId = null; 
+        
+        // Base data for test users
+        const BASE_USERS_DATA = {
+            'farmer123': { 
+                id: 'farmer123',
+                name: 'Rajesh Kumar', 
+                currentPractice: 'Drip Irrigation', 
+                ecologyPoints: 2850,
+                quizStats: { completed: 0, totalScore: 0, avgScore: 0 },
+                impactMetrics: { carbonLevel: 45, bioInput: 30, emissionsIndex: 60 },
+                badges: { waterPro: false, organicGold: false, tillageChampion: false, riceMaster: false, plantationPro: false },
+                journeyProgress: 0,
+            },
+            'farmer456': { 
+                id: 'farmer456',
+                name: 'Geeta Devi', 
+                currentPractice: 'Cover Cropping', 
+                ecologyPoints: 2500,
+                quizStats: { completed: 0, totalScore: 0, avgScore: 0 },
+                impactMetrics: { carbonLevel: 40, bioInput: 25, emissionsIndex: 55 },
+                badges: { waterPro: false, organicGold: false, tillageChampion: false, riceMaster: false, plantationPro: false },
+                journeyProgress: 0,
+            },
+            // Mock users for leaderboard/panchayat view diversity
+            'farmer789': { 
+                id: 'farmer789',
+                name: 'Sanjay Patel', 
+                currentPractice: 'Zero Tillage', 
+                ecologyPoints: 4100,
+                quizStats: { completed: 3, totalScore: 240, avgScore: 80 },
+                impactMetrics: { carbonLevel: 60, bioInput: 50, emissionsIndex: 75 },
+                badges: { waterPro: true, organicGold: true, tillageChampion: true, riceMaster: false, plantationPro: false },
+                journeyProgress: 75,
+            },
+            'farmer001': { 
+                id: 'farmer001',
+                name: 'Priya Sharma', 
+                currentPractice: 'Rainfed', 
+                ecologyPoints: 1200,
+                quizStats: { completed: 1, totalScore: 60, avgScore: 60 },
+                impactMetrics: { carbonLevel: 30, bioInput: 10, emissionsIndex: 40 },
+                badges: { waterPro: false, organicGold: false, tillageChampion: false, riceMaster: false, plantationPro: false },
+                journeyProgress: 15,
+            }
+        };
+        
+        // --- Static Mock Leaderboard Data (Cannot be real-time without a server) ---
+        let localLeaderboard = [];
+        // --------------------------------------------------------------------------
+
+        const QUIZ_LEVELS = {
+            'level1': {
+                title: "Fundamentals Quiz",
+                desc: "Test your knowledge on essential sustainable basics.",
+                level: 1,
+                multiplier: 15,
+                questions: [
+                    { question: "1. What is the key goal of Zero Budget Natural Farming (ZBNF)?", options: ["Maximize chemical fertilizer use", "Reduce cost of production to near zero", "Increase water usage for irrigation", "Promote only cash crops"], answer: "Reduce cost of production to near zero" },
+                    { question: "2. The practice of using living or dead plant material to cover the soil surface is called:", options: ["Tillage", "Monocropping", "Mulching", "Fallow"], answer: "Mulching" },
+                    { question: "3. What is the main advantage of planting legumes?", options: ["They repel all insects", "They fix atmospheric nitrogen into the soil", "They require high amounts of synthetic phosphate", "They accelerate soil erosion"], answer: "They fix atmospheric nitrogen into the soil" },
+                    { question: "4. Which method is most effective for water conservation in arid regions?", options: ["Flood irrigation", "Sprinkler system", "Drip irrigation", "Hosepipe watering"], answer: "Drip irrigation" },
+                    { question: "5. Integrated Pest Management (IPM) primarily focuses on:", options: ["Completely eliminating all pests with strong chemicals", "Using biological and cultural methods before chemical intervention", "Only using genetically modified crops", "Ignoring pest problems until harvest"], answer: "Using biological and cultural methods before chemical intervention" }
+                ]
+            },
+            'level2': {
+                title: "Water Management Quiz",
+                desc: "Advanced questions on water efficiency and conservation techniques.",
+                level: 2,
+                multiplier: 25,
+                requiresBadge: 'waterPro',
+                questions: [
+                    { question: "1. What is the term for applying small amounts of water frequently to the base of plants?", options: ["Micro-spraying", "Drip Irrigation", "Flood Watering", "Rainfed technique"], answer: "Drip Irrigation" },
+                    { question: "2. Which of these is a measurement of soil water tension?", options: ["pH meter", "Tensiometer", "Salinity reader", "Anemometer"], answer: "Tensiometer" },
+                    { question: "3. What does the acronym WUE stand for in agriculture?", options: ["Water Usage Estimation", "Weather Utility Evaluation", "Water Use Efficiency", "Wastewater Utilization Equipment"], answer: "Water Use Efficiency" },
+                    { question: "4. What is the role of Hydrogels in water management?", options: ["They speed up runoff", "They increase soil compaction", "They absorb and retain large amounts of water", "They attract pests"], answer: "They absorb and retain large amounts of water" },
+                    { question: "5. Planting trees around fields to reduce wind speed and evaporation is known as:", options: ["Terracing", "Contour Farming", "Intercropping", "Windbreaks/Shelterbelts"], answer: "Windbreaks/Shelterbelts" }
+                ]
+            },
+            'level3': {
+                title: "Advanced Organics Quiz",
+                desc: "Deep dive into soil biology, nutrient cycling, and bio-inputs.",
+                level: 3,
+                multiplier: 40,
+                requiresBadge: 'organicGold',
+                questions: [
+                    { question: "1. What is the primary function of Vermicompost?", options: ["Killing soil bacteria", "Improving soil structure and fertility", "Repelling birds", "Serving as a synthetic fertilizer"], answer: "Improving soil structure and fertility" },
+                    { question: "2. What nutrient is typically fixed by Rhizobium bacteria in leguminous plants?", options: ["Phosphorus", "Potassium", "Nitrogen", "Calcium"], answer: "Nitrogen" },
+                    { question: "3. Biofertilizers are defined as:", options: ["Chemically synthesized nutrients", "Living microorganisms that enrich soil nutrients", "Pesticides derived from plants", "Heavy metal compounds"], answer: "Living microorganisms that enrich soil nutrients" },
+                    { question: "4. Which bio-input acts as a natural fungicide and plant growth promoter?", options: ["Urea", "Trichoderma", "DAP", "Glyphosate"], answer: "Trichoderma" },
+                    { question: "5. What is the term for the area of soil immediately surrounding a plant's roots?", options: ["Tillage zone", "Rhizosphere", "Drip zone", "Topsoil"], answer: "Rhizosphere" }
+                ]
+            },
+            'level4_rice': {
+                title: "Rice Cultivation Mastery",
+                desc: "Advanced techniques for water and pest management specific to paddy farming.",
+                level: 4,
+                multiplier: 50,
+                requiresBadge: 'tillageChampion',
+                questions: [
+                    { question: "1. What is 'Alternate Wetting and Drying' (AWD) primarily used for in rice farming?", options: ["Increasing methane emissions", "Reducing water consumption", "Preventing weed growth entirely", "Promoting root rot"], answer: "Reducing water consumption" },
+                    { question: "2. The ideal time to control the Rice Stem Borer using bio-pesticides is during which stage?", options: ["Harvesting", "Storage", "Flowering/panicle initiation", "Initial land preparation"], answer: "Flowering/panicle initiation" },
+                    { question: "3. What is the benefit of incorporating rice straw back into the soil?", options: ["It provides a significant source of nitrogen", "It improves soil structure and potassium content", "It increases soil temperature excessively", "It acts as a strong herbicide"], answer: "It improves soil structure and potassium content" },
+                    { question: "4. Which insect is a primary vector for the Rice Tungro Virus?", options: ["Grasshopper", "Brown Plant Hopper (BPH)", "Leaf Folder", "Dragonfly"], answer: "Brown Plant Hopper (BPH)" },
+                    { question: "5. Traditional deep-water rice varieties are adapted to what condition?", options: ["Saline soils", "Very high altitudes", "Flooding and water logging", "Drip irrigation systems"], answer: "Flooding and water logging" }
+                ]
+            },
+            'level5_plantation': {
+                title: "Coconut & Areca Nut Care",
+                desc: "Quizzes on intercropping and pest strategies for major plantation crops.",
+                level: 5,
+                multiplier: 60,
+                requiresBadge: 'riceMaster',
+                questions: [
+                    { question: "1. What type of crop is most suitable for intercropping in a coconut garden?", options: ["Tall, light-demanding trees", "Shade-loving, short-duration crops (e.g., ginger, pineapple)", "Water-intensive crops", "Monoculture grass"], answer: "Shade-loving, short-duration crops (e.g., ginger, pineapple)" },
+                    { question: "2. What is the primary method for managing Red Palm Weevil infestation in coconut trees?", options: ["Burning the entire tree", "Crown sanitation and pheromone trapping", "Deep tillage around the roots", "Using chemical fertilizers"], answer: "Crown sanitation and pheromone trapping" },
+                    { question: "3. Yellowing of lower fronds in coconut palms often indicates a deficiency in which nutrient?", options: ["Iron", "Nitrogen", "Magnesium or Potassium", "Zinc"], answer: "Magnesium or Potassium" },
+                    { question: "4. What is the key advantage of applying cow dung slurry around Areca Nut palms?", options: ["It repels all birds", "It enhances microbial activity and nutrient uptake", "It causes rapid flowering", "It stabilizes the soil pH to 2.0"], answer: "It enhances microbial activity and nutrient uptake" },
+                    { question: "5. Which practice helps prevent Bud Rot disease in coconut palms, especially during the monsoon?", options: ["Applying sand to the leaves", "Improving drainage and applying fungicide to the crown", "Pruning all green leaves", "Using flood irrigation"], answer: "Improving drainage and applying fungicide to the crown" }
+                ]
+            }
+        };
+        
+        let currentQuizLevelKey = 'level1'; // Tracks the current quiz to load
+
+        // --- Video Data ---
+        const KERALA_VIDEOS = [
+            {
+                title: "Organic Coconut Farming in Kerala",
+                description: "A detailed guide on organic farming techniques specifically for coconut cultivation in the region.",
+                embedId: "AbjKwCS74Zg", 
+                url: "https://www.youtube.com/watch?v=AbjKwCS74Zg"
+            },
+            {
+                title: "Natural Pest Control for Spice Crops",
+                description: "Tutorial on preparing natural, zero-cost pesticides suitable for common Kerala spice crops like pepper and cardamom.",
+                embedId: "GHIZWXsD_gI", 
+                url: "https://www.youtube.com/watch?v=GHIZWXsD_gI"
+            },
+            {
+                title: "Rainwater Harvesting for Small Farms",
+                description: "Practical methods for water conservation and managing water resources, highly relevant for monsoon farming in Kerala.",
+                embedId: "2LtfEz2jimA", 
+                url: "https://www.youtube.com/watch?v=2LtfEz2jimA"
+            }
+        ];
+        // ------------------
+
+
+        // --- DOM Elements ---
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const panchayatView = document.getElementById('panchayat-view'); 
+        const farmerLoginForm = document.getElementById('farmer-login-form');
+        const panchayatLoginForm = document.getElementById('panchayat-login-form'); 
+        const logoutBtn = document.getElementById('logout-btn');
+        const panchayatLogoutBtn = document.getElementById('panchayat-logout-btn'); 
+        const loginMessage = document.getElementById('login-message');
+        const panchayatLoginMessage = document.getElementById('panchayat-login-message'); 
+        
+        // Farmer Dashboard Elements
+        const farmerNameEl = document.getElementById('farmer-name');
+        const currentPracticeEl = document.getElementById('current-practice');
+        const ecologyPointsEl = document.getElementById('ecology-points');
+        const communityRankEl = document.getElementById('community-rank');
+        const quizCompletionEl = document.getElementById('quiz-completion');
+        const quizAvgScoreEl = document.getElementById('quiz-avg-score');
+        const badgeContainer = document.getElementById('badge-container');
+        const impactMetricsContainer = document.getElementById('impact-metrics');
+        const journeySegmentsContainer = document.getElementById('journey-segments');
+        const journeyProgressBar = document.getElementById('journey-progress-bar');
+        const journeyProgressText = document.getElementById('journey-progress-text');
+        const leaderboardContainer = document.getElementById('leaderboard-container');
+        const videoResourcesContainer = document.getElementById('video-resources');
+        
+        // Quiz Elements
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const quizModal = document.getElementById('quiz-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const questionContainer = document.getElementById('question-container');
+        const submitQuizBtn = document.getElementById('submit-quiz-btn');
+        const quizResult = document.getElementById('quiz-result');
+        const modalQuizTitleEl = document.getElementById('modal-quiz-title');
+        const currentQuizTitleEl = document.getElementById('current-quiz-title');
+        const currentQuizDescEl = document.getElementById('current-quiz-desc');
+        const currentQuizLevelEl = document.getElementById('current-quiz-level');
+
+        // Panchayat Dashboard Elements
+        const panchayatTotalFarmersEl = document.getElementById('panchayat-total-farmers');
+        const panchayatAvgEcologyEl = document.getElementById('panchayat-avg-ecology');
+        const panchayatAvgQuizScoreEl = document.getElementById('panchayat-avg-quiz-score');
+        const panchayatAvgJourneyEl = document.getElementById('panchayat-avg-journey');
+        const farmerPerformanceBody = document.getElementById('farmer-performance-body');
+        
+        // New Elements
+        const demoWalkthroughBtn = document.getElementById('demo-walkthrough-btn');
+        const voiceAiBtn = document.getElementById('voice-ai-btn');
+        const voiceAiModal = document.getElementById('voice-ai-modal');
+        const closeVoiceModalBtn = document.getElementById('close-voice-modal-btn');
+        const voiceAiListeningText = document.getElementById('voice-ai-listening-text');
+        const offlineIndicator = document.getElementById('offline-indicator');
+        
+        // NEW AI Output elements
+        const aiResponseMessage = document.getElementById('ai-response-message');
+        const aiResponseText = document.getElementById('ai-response-text');
+        const closeAiResponse = document.getElementById('close-ai-response');
+
+
+        // --- Local Storage Utilities (The new "backend") ---
+        
+        /**
+         * Fetches all farmer data from local storage, seeding if necessary.
+         * @returns {Array<object>} All farmer data records.
+         */
+        function getAllFarmerData() {
+            const allData = [];
+            const allFarmerKeys = Object.keys(BASE_USERS_DATA);
+
+            allFarmerKeys.forEach(id => {
+                const localStorageKey = `farmerData_${id}`;
+                let data = localStorage.getItem(localStorageKey);
+                
+                if (!data) {
+                    // Seed initial data if not found
+                    data = JSON.stringify(BASE_USERS_DATA[id]);
+                    localStorage.setItem(localStorageKey, data);
+                }
+                allData.push(JSON.parse(data));
+            });
+
+            return allData;
+        }
+
+        /**
+         * Checks localStorage for user data; if not found, seeds it with base data.
+         */
+        function setupInitialUserData() {
+            // Simply call getAllFarmerData which ensures all data is seeded
+            localLeaderboard = getAllFarmerData();
+            updateLocalLeaderboard();
+        }
+
+        /**
+         * Loads a farmer's data from localStorage.
+         * @param {string} farmerId 
+         * @returns {object|null}
+         */
+        function loadFarmerData(farmerId) {
+            const data = localStorage.getItem(`farmerData_${farmerId}`);
+            if (data) {
+                return JSON.parse(data);
+            }
+            return null;
+        }
+
+        /**
+         * Saves a farmer's updated data to localStorage.
+         * @param {string} farmerId 
+         * @param {object} data 
+         */
+        function saveFarmerData(farmerId, data) {
+            localStorage.setItem(`farmerData_${farmerId}`, JSON.stringify(data));
+            // Trigger a UI update (since this acts as the "snapshot listener")
+            updateDashboardUI(data);
+            // Update local leaderboard state after saving
+            updateLocalLeaderboard(farmerId, data);
+        }
+
+        /**
+         * Updates the local, non-shared leaderboard array with fresh data.
+         * This function simulates a server update but only runs client-side.
+         */
+        function updateLocalLeaderboard(updatedId = null, updatedData = null) {
+            // Refresh the entire leaderboard array from local storage to ensure consistency
+            const allData = getAllFarmerData();
+            
+            // Map the data into the simple leaderboard structure
+            localLeaderboard = allData.map(data => ({
+                id: data.id,
+                name: data.name,
+                ecologyPoints: data.ecologyPoints,
+                quizStats: data.quizStats, 
+                journeyProgress: data.journeyProgress,
+                badges: data.badges
+            }));
+            
+            // Sort data client-side by ecologyPoints descending
+            localLeaderboard.sort((a, b) => b.ecologyPoints - a.ecologyPoints);
+            
+            renderLeaderboard(localLeaderboard);
+        }
+        
+        // --- View Switching Logic ---
+        function switchView(viewId) {
+            loginView.classList.add('hidden');
+            dashboardView.classList.add('hidden');
+            panchayatView.classList.add('hidden');
+
+            if (viewId === 'dashboard') {
+                dashboardView.classList.remove('hidden');
+            } else if (viewId === 'panchayat') {
+                panchayatView.classList.remove('hidden');
+                loadPanchayatDashboard(); // Load data when entering Panchayat view
+            } else {
+                // Default to login view
+                loginView.classList.remove('hidden');
+                activeFarmerId = null;
+                // Clear dynamic content on logout
+                farmerNameEl.textContent = 'Loading...';
+                ecologyPointsEl.textContent = '0';
+            }
+        }
+
+        // --- Init Handler ---
+        function initApp() {
+            console.log("App initializing with local storage.");
+            // 1. Initial Data Setup (ensures all mock data is in local storage)
+            setupInitialUserData();
+            
+            // 2. Render Static Videos 
+            renderVideoResources();
+
+            // 3. Initial check on online/offline status
+            if (!navigator.onLine) {
+                offlineIndicator.classList.remove('hidden');
+            }
+        }
+
+        // --- Login & Logout Handlers ---
+
+        farmerLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('farmer-id').value;
+            const password = document.getElementById('farmer-password').value;
+
+            if (BASE_USERS_DATA[id] && password === 'pass') {
+                loginMessage.classList.add('hidden');
+                activeFarmerId = id;
+                const data = loadFarmerData(activeFarmerId);
+                if (data) {
+                    updateDashboardUI(data);
+                    // Hide any previous AI message when logging in
+                    aiResponseMessage.classList.add('hidden'); 
+                    switchView('dashboard');
+                }
+            } else {
+                loginMessage.textContent = 'Invalid ID or password. Try: farmer123 / pass';
+                loginMessage.classList.remove('hidden');
+            }
+        });
+
+        // Panchayat Login Handler
+        panchayatLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('panchayat-id').value;
+            const password = document.getElementById('panchayat-password').value;
+
+            // Simple mock authentication for Panchayat
+            if (id === 'official' && password === 'pass') {
+                panchayatLoginMessage.classList.add('hidden');
+                switchView('panchayat');
+            } else {
+                panchayatLoginMessage.textContent = 'Invalid ID or password. Use: official / pass';
+                panchayatLoginMessage.classList.remove('hidden');
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            switchView('login');
+        });
+
+        // Panchayat Logout Handler
+        panchayatLogoutBtn.addEventListener('click', () => {
+            switchView('login');
+        });
+
+        // Add event listener for the demo button
+        demoWalkthroughBtn.addEventListener('click', () => {
+            // Automatically log in the pre-configured demo user
+            const demoUser = BASE_USERS_DATA['farmer789'];
+            if (demoUser) {
+                // Reset the demo user's state to ensure a consistent experience
+                localStorage.setItem(`farmerData_farmer789`, JSON.stringify({
+                    ...demoUser,
+                    ecologyPoints: 4100, // Starting point for the demo
+                    quizStats: { completed: 3, totalScore: 240, avgScore: 80 },
+                    badges: { waterPro: true, organicGold: true, tillageChampion: true, riceMaster: false, plantationPro: false },
+                    journeyProgress: 75,
+                }));
+                
+                activeFarmerId = 'farmer789';
+                const data = loadFarmerData(activeFarmerId);
+                updateDashboardUI(data);
+                aiResponseMessage.classList.add('hidden'); // Hide AI message for clean start
+                switchView('dashboard');
+            }
+        });
+
+
+        // --- Dashboard Data Loader (Farmer) ---
+        function loadFarmerDashboard() {
+            if (!activeFarmerId) return;
+            const data = loadFarmerData(activeFarmerId);
+            if (data) {
+                updateDashboardUI(data);
+            }
+            updateLocalLeaderboard();
+        }
+
+        // --- Panchayat Dashboard Logic ---
+        function loadPanchayatDashboard() {
+            const farmers = getAllFarmerData();
+            const totalFarmers = farmers.length;
+            
+            let totalEcologyPoints = 0;
+            let totalQuizScores = 0;
+            let totalCompletedQuizzes = 0;
+            let totalJourneyProgress = 0;
+            
+            farmers.forEach(farmer => {
+                totalEcologyPoints += farmer.ecologyPoints;
+                totalQuizScores += (farmer.quizStats.avgScore * farmer.quizStats.completed);
+                totalCompletedQuizzes += farmer.quizStats.completed;
+                totalJourneyProgress += farmer.journeyProgress;
+            });
+
+            const avgEcologyPoints = totalFarmers > 0 ? Math.round(totalEcologyPoints / totalFarmers) : 0;
+            const avgQuizScore = totalCompletedQuizzes > 0 ? Math.round(totalQuizScores / totalCompletedQuizzes) : 0;
+            const avgJourneyProgress = totalFarmers > 0 ? Math.round(totalJourneyProgress / totalFarmers) : 0;
+
+            // Update Key Metrics Cards
+            panchayatTotalFarmersEl.textContent = totalFarmers;
+            panchayatAvgEcologyEl.textContent = avgEcologyPoints.toLocaleString();
+            panchayatAvgQuizScoreEl.textContent = `${avgQuizScore}%`;
+            panchayatAvgJourneyEl.textContent = `${avgJourneyProgress}%`;
+
+            // Render Farmer Performance Table
+            renderFarmerPerformanceTable(farmers);
+            
+            // RENDER THE NEW CHARTS
+            renderPanchayatCharts(farmers);
+            
+            lucide.createIcons(); // Re-render icons for new content
+        }
+
+        function renderFarmerPerformanceTable(farmers) {
+            farmerPerformanceBody.innerHTML = '';
+            
+            // Sort by Ecology Points for easy viewing
+            farmers.sort((a, b) => b.ecologyPoints - a.ecologyPoints);
+
+            farmers.forEach(farmer => {
+                const badgesHtml = `
+                    <div class="flex space-x-1">
+                        <i data-lucide="droplets" class="w-4 h-4 ${farmer.badges.waterPro ? 'text-blue-500' : 'text-gray-300'}" title="Water Pro"></i>
+                        <i data-lucide="leaf" class="w-4 h-4 ${farmer.badges.organicGold ? 'text-yellow-500' : 'text-gray-300'}" title="Organic Gold"></i>
+                        <i data-lucide="soup" class="w-4 h-4 ${farmer.badges.tillageChampion ? 'text-green-500' : 'text-gray-300'}" title="Tillage Champion"></i>
+                        <i data-lucide="grain" class="w-4 h-4 ${farmer.badges.riceMaster ? 'text-orange-500' : 'text-gray-300'}" title="Rice Master"></i>
+                        <i data-lucide="tree-palm" class="w-4 h-4 ${farmer.badges.plantationPro ? 'text-teal-500' : 'text-gray-300'}" title="Plantation Pro"></i>
+                    </div>
+                `;
+                
+                farmerPerformanceBody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${farmer.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${farmer.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold green-text">${farmer.ecologyPoints.toLocaleString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${farmer.quizStats.completed}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">${farmer.quizStats.avgScore}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                <div class="green-primary h-2 rounded-full" style="width: ${farmer.journeyProgress}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${badgesHtml}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+
+        // --- UI Rendering Functions (Farmer Dashboard) ---
+        
+        function updateDashboardUI(data) {
+            farmerNameEl.textContent = data.name;
+            ecologyPointsEl.textContent = data.ecologyPoints.toLocaleString();
+            currentPracticeEl.textContent = data.currentPractice;
+
+            // Update Quiz Stats
+            quizCompletionEl.textContent = data.quizStats.completed;
+            quizAvgScoreEl.textContent = `${data.quizStats.avgScore}%`;
+
+            // Update Progress Bar (Journey)
+            journeyProgressBar.style.width = `${data.journeyProgress}%`;
+            journeyProgressText.textContent = `${data.journeyProgress}% Journey Progress`;
+            renderJourneySegments(data.journeyProgress);
+
+            // Update Impact Metrics
+            renderImpactMetrics(data.impactMetrics);
+
+            // Update Badges and Quiz Level
+            renderBadges(data.badges);
+            updateAvailableQuiz(data.badges);
+        }
+
+        function updateAvailableQuiz(badges) {
+            // Determine the highest available quiz level based on earned badges
+            if (badges.plantationPro) {
+                currentQuizLevelKey = 'level5_plantation';
+            } else if (badges.riceMaster) {
+                currentQuizLevelKey = 'level4_rice';
+            } else if (badges.organicGold) {
+                currentQuizLevelKey = 'level3';
+            } else if (badges.waterPro) {
+                currentQuizLevelKey = 'level2';
+            } else {
+                currentQuizLevelKey = 'level1';
+            }
+
+            const quiz = QUIZ_LEVELS[currentQuizLevelKey];
+            currentQuizTitleEl.textContent = quiz.title;
+            currentQuizDescEl.textContent = quiz.desc;
+            currentQuizLevelEl.textContent = `Level ${quiz.level}`;
+
+            startQuizBtn.textContent = `Start ${quiz.title}`;
+            
+            // Re-hide previous result message
+            quizResult.classList.add('hidden');
+        }
+        
+        function renderLeaderboard(leaderboard) {
+            leaderboardContainer.innerHTML = '';
+            let currentUserRank = '--';
+            
+            // Only use the first 5 entries for the farmer dashboard leaderboard display
+            const topFarmers = leaderboard.slice(0, 5); 
+
+            topFarmers.forEach((farmer, index) => {
+                const rank = index + 1;
+                const isCurrentUser = farmer.id === activeFarmerId;
+                
+                // If the current user is not in the top 5, we need to find their rank separately
+                if (isCurrentUser) {
+                    currentUserRank = rank.toLocaleString();
+                }
+
+                const bgColor = isCurrentUser ? 'bg-green-50 border-l-4 green-border' : (rank === 1 ? 'bg-yellow-50 border-l-4 border-yellow-500' : 'bg-gray-100');
+                const rankColor = isCurrentUser ? 'green-text' : (rank === 1 ? 'text-yellow-600' : 'text-gray-500');
+                
+                leaderboardContainer.innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded-lg ${bgColor}">
+                        <div class="flex items-center">
+                            <span class="font-bold text-lg ${rankColor} mr-2">${rank}.</span>
+                            <span class="text-gray-800 ${isCurrentUser ? 'font-bold' : ''}">${farmer.name} ${isCurrentUser ? '(You)' : ''}</span>
+                        </div>
+                        <span class="font-bold ${isCurrentUser ? 'green-text' : 'text-gray-700'}">${farmer.ecologyPoints.toLocaleString()} Pts</span>
+                    </div>
+                `;
+            });
+            
+            // If the current user is not in the top 5, we need to find their actual rank from the full leaderboard
+            if (activeFarmerId && currentUserRank === '--') {
+                const userIndex = leaderboard.findIndex(f => f.id === activeFarmerId);
+                if (userIndex !== -1) {
+                    currentUserRank = userIndex + 1;
+                    // Add a special entry for the current user if they aren't in the visible top 5
+                    leaderboardContainer.innerHTML += `
+                        <div class="text-center text-sm text-gray-500 pt-2 pb-1">...</div>
+                        <div class="flex justify-between items-center p-2 rounded-lg bg-green-50 border-l-4 green-border">
+                            <div class="flex items-center">
+                                <span class="font-bold text-lg green-text mr-2">#${currentUserRank}.</span>
+                                <span class="text-gray-800 font-bold">${loadFarmerData(activeFarmerId).name} (You)</span>
+                            </div>
+                            <span class="font-bold green-text">${loadFarmerData(activeFarmerId).ecologyPoints.toLocaleString()} Pts</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Update current user's rank on scorecard
+            communityRankEl.textContent = currentUserRank;
+        }
+        
+        function renderBadges(badges) {
+            badgeContainer.innerHTML = '';
+            const allBadges = [
+                { id: 'waterPro', name: 'Water Efficiency Pro', desc: 'Reached 3000 Ecology Points.', icon: 'droplets', earned: badges.waterPro, color: 'text-blue-500', bg: 'bg-blue-50' },
+                { id: 'organicGold', name: 'Chemical-Free Gold', desc: 'Reached 4000 Ecology Points.', icon: 'leaf', earned: badges.organicGold, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+                { id: 'tillageChampion', name: 'Tillage Champion', desc: 'Completed 3 quizzes.', icon: 'soup', earned: badges.tillageChampion, color: 'text-green-500', bg: 'bg-green-50' },
+                { id: 'riceMaster', name: 'Rice Master', desc: 'Completed 4 quizzes.', icon: 'grain', earned: badges.riceMaster, color: 'text-orange-500', bg: 'bg-orange-50' },
+                { id: 'plantationPro', name: 'Plantation Pro', desc: 'Completed 5 quizzes.', icon: 'tree-palm', earned: badges.plantationPro, color: 'text-teal-500', bg: 'bg-teal-50' },
+            ];
+
+            allBadges.forEach(badge => {
+                const opacity = badge.earned ? 'opacity-100' : 'opacity-50 grayscale';
+                badgeContainer.innerHTML += `
+                    <div class="flex items-center space-x-3 p-3 ${badge.bg} rounded-lg ${opacity}">
+                        <div class="p-2 rounded-full ${badge.color}">
+                            <i data-lucide="${badge.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">${badge.name}</div>
+                            <div class="text-sm text-gray-600">${badge.desc}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            // Re-render icons for new HTML content
+            lucide.createIcons();
+        }
+
+        function renderImpactMetrics(metrics) {
+            impactMetricsContainer.innerHTML = '';
+            const metricsData = [
+                { name: 'Organic Carbon Level', value: metrics.carbonLevel, color: 'green-text', barColor: 'green-primary' },
+                { name: 'Bio-Input Usage Rate', value: metrics.bioInput, color: 'text-blue-500', barColor: 'bg-blue-500' },
+                { name: 'Reduced Emissions Index', value: metrics.emissionsIndex, color: 'text-orange-500', barColor: 'bg-orange-500' },
+            ];
+            
+            metricsData.forEach(metric => {
+                impactMetricsContainer.innerHTML += `
+                    <div>
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-900">
+                            <span>${metric.name}</span>
+                            <span class="${metric.color}">${metric.value}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                            <div class="${metric.barColor} h-2.5 rounded-full" style="width: ${metric.value}%"></div>
+                            </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderJourneySegments(progress) {
+            journeySegmentsContainer.innerHTML = '';
+            const segments = [
+                { name: 'Onboarding', icon: 'graduation-cap', min: 0, max: 20, desc: 'Intro to sustainable techniques.' },
+                { name: 'Water Mgmt', icon: 'droplets', min: 21, max: 40, desc: 'Mastering irrigation efficiency.' },
+                { name: 'Soil Health', icon: 'factory', min: 41, max: 60, desc: 'Focus on compost and bio-inputs.' },
+                { name: 'Certification', icon: 'check-circle', min: 61, max: 80, desc: 'Preparing for organic verification.' },
+                { name: 'Ecosystem Lead', icon: 'recycle', min: 81, max: 100, desc: 'Maintaining long-term balance.' },
+            ];
+
+            segments.forEach(segment => {
+                const isActive = progress >= segment.min;
+                const isCurrent = progress >= segment.min && progress <= segment.max;
+                
+                let bgColor = 'bg-gray-100 text-gray-500';
+                let textColor = 'text-gray-500';
+                
+                if (isCurrent) {
+                    bgColor = 'bg-white shadow-md border-2 green-border green-text';
+                    textColor = 'green-text font-bold';
+                } else if (isActive) {
+                    bgColor = 'bg-green-100 text-green-700';
+                    textColor = 'text-green-700';
+                }
+
+                journeySegmentsContainer.innerHTML += `
+                    <div class="p-3 rounded-xl ${bgColor} progress-segment" title="${segment.desc}">
+                        <i data-lucide="${segment.icon}" class="w-5 h-5 mx-auto mb-1"></i>
+                        <div class="font-medium text-sm ${textColor}">${segment.name}</div>
+                        <div class="text-xs opacity-80">${isCurrent ? 'Current Focus' : (isActive ? 'Achieved' : 'Next Goal')}</div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+        
+        function renderVideoResources() {
+            videoResourcesContainer.innerHTML = '';
+            KERALA_VIDEOS.forEach(video => {
+                // Construct the YouTube embed URL
+                const embedUrl = `https://www.youtube.com/embed/${video.embedId}`;
+                
+                videoResourcesContainer.innerHTML += `
+                    <div class="bg-gray-50 rounded-xl shadow-md p-4 flex flex-col space-y-3">
+                        <div class="video-wrapper rounded-lg">
+                            <!-- Using video IDs that should work for embedding -->
+                            <iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-semibold text-gray-900">${video.title}</h4>
+                            <p class="text-xs text-gray-600 mt-1">${video.description}</p>
+                        </div>
+                        <a href="${video.url}" target="_blank" download="${video.title.replace(/\s/g, '_')}.mp4" rel="noopener noreferrer" 
+                           class="w-full py-2 text-center rounded-lg text-sm font-medium green-primary text-white hover-green transition duration-200 flex items-center justify-center">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i> View/Download Video
+                        </a>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+
+        // --- Quiz Logic ---
+        
+        function renderQuiz() {
+            // Use the currently selected quiz level
+            const quiz = QUIZ_LEVELS[currentQuizLevelKey];
+            modalQuizTitleEl.textContent = quiz.title;
+            
+            questionContainer.innerHTML = ''; 
+            quiz.questions.forEach((q, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'border-b border-gray-200 pb-3 mb-3 last:border-b-0';
+                qDiv.innerHTML = `
+                    <p class="font-medium text-gray-800 mb-2">${q.question}</p>
+                    <div class="space-y-2">
+                        ${q.options.map((option, oIndex) => `
+                            <label class="flex items-center text-sm text-gray-700 cursor-pointer hover:bg-green-50 p-2 rounded-lg transition duration-150">
+                                <input type="radio" name="question-${qIndex}" value="${option}" class="form-radio h-4 w-4 green-text border-gray-300 focus:ring-green-500 question-radio">
+                                <span class="ml-2">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                questionContainer.appendChild(qDiv);
+            });
+
+            const radioButtons = document.querySelectorAll('.question-radio');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', checkCompletion);
+            });
+            checkCompletion();
+        }
+        
+        function checkCompletion() {
+            const quiz = QUIZ_LEVELS[currentQuizLevelKey];
+            let allAnswered = true;
+            quiz.questions.forEach((q, qIndex) => {
+                const radios = document.querySelectorAll(`input[name="question-${qIndex}"]`);
+                if (!Array.from(radios).some(radio => radio.checked)) {
+                    allAnswered = false;
+                }
+            });
+            submitQuizBtn.disabled = !allAnswered;
+        }
+
+        // --- Badge Check Function ---
+        function checkAndAwardBadges(currentData, newPoints, newCompletedQuizzes) {
+            const updates = { ...currentData.badges };
+            const messages = [];
+
+            // Rule 1: Water Efficiency Pro (3000 Points)
+            if (!currentData.badges.waterPro && newPoints >= 3000) {
+                updates.waterPro = true;
+                messages.push("Congrats! You earned the **Water Efficiency Pro** badge!");
+            }
+
+            // Rule 2: Chemical-Free Gold (4000 Points)
+            if (!currentData.badges.organicGold && newPoints >= 4000) {
+                updates.organicGold = true;
+                messages.push("Amazing! You earned the **Chemical-Free Gold** badge!");
+            }
+            
+            // Rule 3: Zero Tillage Champion (3 Quizzes Completed)
+            if (!currentData.badges.tillageChampion && newCompletedQuizzes >= 3) {
+                updates.tillageChampion = true;
+                messages.push("Champion! You earned the **Zero Tillage Champion** badge!");
+            }
+            
+            // Rule 4: Rice Master (4 Quizzes Completed)
+            if (!currentData.badges.riceMaster && newCompletedQuizzes >= 4) {
+                updates.riceMaster = true;
+                messages.push("Paddy Perfection! You earned the **Rice Master** badge!");
+            }
+            
+            // Rule 5: Plantation Pro (5 Quizzes Completed)
+            if (!currentData.badges.plantationPro && newCompletedQuizzes >= 5) {
+                updates.plantationPro = true;
+                messages.push("Coconut Crusher! You earned the **Plantation Pro** badge!");
+            }
+
+            return { badges: updates, messages };
+        }
+        // ------------------------------------
+
+        async function submitQuiz() {
+            if (!activeFarmerId) {
+                 quizResult.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+                 quizResult.classList.add('bg-yellow-100', 'text-yellow-800');
+                 quizResult.innerHTML = 'Error: Please log in first to submit the quiz!';
+                 return;
+            }
+            
+            const currentQuiz = QUIZ_LEVELS[currentQuizLevelKey];
+
+            let score = 0;
+            currentQuiz.questions.forEach((q, qIndex) => {
+                const selectedOption = document.querySelector(`input[name="question-${qIndex}"]:checked`);
+                if (selectedOption && selectedOption.value === q.answer) {
+                    score++;
+                }
+            });
+
+            const percentage = Math.round((score / currentQuiz.questions.length) * 100);
+            const pointsAwarded = percentage * currentQuiz.multiplier; // Use the multiplier for the current level
+
+            const currentData = loadFarmerData(activeFarmerId);
+            
+            if (currentData) {
+                const stats = currentData.quizStats;
+                const newTotalScoreSum = stats.totalScore + percentage;
+                const newCompleted = stats.completed + 1;
+                const newAvgScore = Math.round(newTotalScoreSum / newCompleted);
+                const newPoints = currentData.ecologyPoints + pointsAwarded;
+
+                // --- Badge Logic Execution ---
+                const { badges: newBadges, messages: badgeMessages } = checkAndAwardBadges(
+                    currentData, newPoints, newCompleted
+                );
+                
+                // Prepare the full updated data object
+                const updatedData = {
+                    ...currentData,
+                    ecologyPoints: newPoints,
+                    quizStats: {
+                        completed: newCompleted,
+                        totalScore: newTotalScoreSum,
+                        avgScore: newAvgScore,
+                    },
+                    badges: newBadges,
+                    // Advance the journey based on points and level
+                    journeyProgress: Math.min(100, currentData.journeyProgress + (pointsAwarded / 100)),
+                };
+                
+                // 1. Save the updated data to the "backend" (localStorage)
+                saveFarmerData(activeFarmerId, updatedData);
+                
+                // 2. Display Result
+                quizResult.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800', 'hidden', 'bg-green-100', 'text-green-800');
+                let message;
+                
+                // Combine quiz result and badge messages
+                const quizStatus = percentage >= 70 ? 
+                    `Excellent! You scored ${percentage}% and earned ${pointsAwarded} Ecology Points.` :
+                    `Keep studying! You scored ${percentage}%.`;
+                    
+                message = `Quiz Complete! ${quizStatus}`;
+                
+                if (badgeMessages.length > 0) {
+                    message += `<br><br>🎉 **NEW ACHIEVEMENTS** 🎉<br>` + badgeMessages.join('<br>');
+                    quizResult.classList.add('bg-green-100', 'text-green-800');
+                } else if (percentage >= 70) {
+                    quizResult.classList.add('bg-green-100', 'text-green-800');
+                } else {
+                    quizResult.classList.add('bg-red-100', 'text-red-800');
+                }
+                
+                quizResult.innerHTML = message;
+            } else {
+                 quizResult.classList.remove('hidden');
+                 quizResult.classList.add('bg-red-100', 'text-red-800');
+                 quizResult.innerHTML = 'An error occurred: could not load your local data.';
+            }
+
+            // 3. Close Modal
+            quizModal.classList.add('hidden');
+        }
+
+
+        // Quiz Event Listeners
+        startQuizBtn.addEventListener('click', () => {
+            if (!activeFarmerId) {
+                 quizResult.classList.remove('hidden');
+                 quizResult.classList.add('bg-yellow-100', 'text-yellow-800');
+                 quizResult.innerHTML = 'Please log in as a farmer first to start the quiz!';
+                 return;
+            }
+            renderQuiz();
+            quizModal.classList.remove('hidden');
+            quizResult.classList.add('hidden');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            quizModal.classList.add('hidden');
+        });
+
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        
+        // Voice AI Simulation Logic
+        voiceAiBtn.addEventListener('click', () => {
+            // 1. Show the voice modal
+            voiceAiModal.classList.remove('hidden');
+            
+            // 2. Clear any previous AI response on the dashboard
+            aiResponseMessage.classList.add('hidden');
+
+            // Simulate the listening/processing phase
+            setTimeout(() => {
+                voiceAiListeningText.innerHTML = `<span class="text-green-600">Question Detected!</span> <br> Searching for "How to compost farm waste..."`;
+                
+                // Simulate the AI processing and response
+                setTimeout(() => {
+                    voiceAiModal.classList.add('hidden');
+                    
+                    // The AI's generated response
+                    const responseText = "Composting is easy! Mix **green materials** (like fresh leaves or kitchen scraps) with **brown materials** (like dried straw or wood chips) in a ratio of 2:1. Keep the pile moist, and turn it every few weeks to speed up decomposition. This boosts your soil's health!";
+
+                    // 3. Display the response in the clean message box on the dashboard
+                    aiResponseText.innerHTML = responseText;
+                    aiResponseMessage.classList.remove('hidden');
+                    
+                    voiceAiListeningText.textContent = 'Voice AI is listening...'; // Reset text for next use
+                }, 2000);
+            }, 1500);
+        });
+        
+        // Event listener to close the AI response message box
+        closeAiResponse.addEventListener('click', () => {
+            aiResponseMessage.classList.add('hidden');
+        });
+
+
+        closeVoiceModalBtn.addEventListener('click', () => {
+            voiceAiModal.classList.add('hidden');
+            voiceAiListeningText.textContent = 'Voice AI is listening...'; // Reset text
+        });
+
+        // Offline Status Indicator Listener
+        window.addEventListener('offline', () => {
+            offlineIndicator.classList.remove('hidden');
+            alert("You've gone offline. The app is still working!");
+        });
+
+        window.addEventListener('online', () => {
+            offlineIndicator.classList.add('hidden');
+        });
+
+
+        // RENDER CHARTS FUNCTION (Panchayat Dashboard)
+        function renderPanchayatCharts(farmers) {
+            const ctx1 = document.getElementById('quizAdoptionChart').getContext('2d');
+            const ctx2 = document.getElementById('ecologyPointsChart').getContext('2d');
+
+            // --- Destroy previous charts if they exist ---
+            if (window.quizAdoptionChartInstance) {
+                window.quizAdoptionChartInstance.destroy();
+            }
+            if (window.ecologyPointsChartInstance) {
+                window.ecologyPointsChartInstance.destroy();
+            }
+
+            // Sample data (can be generated from your local data)
+            const farmerNames = farmers.map(f => f.name);
+            const quizScores = farmers.map(f => f.quizStats.avgScore);
+            const journeyProgress = farmers.map(f => f.journeyProgress);
+
+            // Chart 1: Quiz Score vs. Journey Progress
+            window.quizAdoptionChartInstance = new Chart(ctx1, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Farmer Engagement',
+                        data: farmers.map(f => ({ x: f.quizStats.avgScore, y: f.journeyProgress, name: f.name })),
+                        backgroundColor: 'rgba(22, 163, 74, 0.6)',
+                        borderColor: 'rgba(22, 163, 74, 1)',
+                        pointRadius: 6,
+                        hoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { display: true, text: 'Average Quiz Score (%)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Journey Progress (%)' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    const farmer = farmers.find(f => f.quizStats.avgScore === point.x && f.journeyProgress === point.y) || { name: 'Unknown' };
+                                    return `Farmer: ${farmer.name} | Quiz: ${point.x}% | Progress: ${point.y}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Mock Time-Series Data (Actionable Insights)
+            window.ecologyPointsChartInstance = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Avg. Ecology Points',
+                        data: [1500, 2100, 2500, 2800, 3100],
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        // Start the application setup
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
